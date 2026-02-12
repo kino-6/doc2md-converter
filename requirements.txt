@@ -1,0 +1,19 @@
+# Core dependencies
+python-docx>=0.8.11
+openpyxl>=3.1.0
+PyPDF2>=3.0.0
+pdfplumber>=0.10.0
+PyMuPDF>=1.23.0
+pytesseract>=0.3.10
+PyYAML>=6.0
+click>=8.1.0
+markdown-it-py>=3.0.0
+tqdm>=4.65.0
+
+# Testing dependencies
+pytest>=7.4.0
+hypothesis>=6.82.0
+pytest-cov>=4.1.0
+
+# Optional: LLM evaluation support
+# ollama>=0.1.0
