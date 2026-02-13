@@ -46,7 +46,7 @@ class DiagramConverter:
         """モデルが利用可能かチェック"""
         try:
             models = ollama.list()
-            available_models = [m['name'] for m in models.get('models', [])]
+            available_models = [m.model for m in models.models]
             
             if self.model not in available_models:
                 print(f"警告: モデル '{self.model}' が見つかりません。")
