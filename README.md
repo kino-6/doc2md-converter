@@ -12,6 +12,7 @@
 - ✅ **バッチ処理**: 複数ファイルの一括変換
 - ✅ **設定ファイル**: YAMLによる柔軟な設定
 - ✅ **LLM品質評価**: Ollamaによる変換品質の自動評価（オプション、評価のみで修正機能なし）
+- ✅ **LLM文章校正**: Ollamaによる誤字脱字・文法エラーの自動修正（オプション）
 
 ## インストール
 
@@ -68,6 +69,15 @@ doc2md -i document.docx --dry-run
 
 # 画像をBase64埋め込み
 doc2md -i document.pdf -o output.md --embed-images-base64
+
+# 文章校正を有効化（自動モード）
+doc2md -i document.pdf -o output.md --proofread
+
+# インタラクティブ校正（各修正を確認）
+doc2md -i document.pdf -o output.md --proofread --proofread-mode interactive
+
+# 校正案のみ表示（Dry-run）
+doc2md -i document.pdf --proofread --proofread-mode dry-run
 ```
 
 ### 設定ファイルの例
@@ -114,13 +124,14 @@ PDFページ処理中: 100%|█████████████████�
 
 #### 前提条件
 
-1. **Ollamaのインストール**: https://ollama.ai/
+1. **Ollamaのインストール**: <https://ollama.ai/>
 2. **推奨モデル**:
    - `llama3.2:latest` (2GB) - 軽量、高速
    - `llama3:latest` (4.7GB) - バランス型
    - `mistral:latest` (4.1GB) - 代替オプション
 
 3. **Pythonパッケージ**:
+
 ```bash
 pip install ollama
 ```
@@ -157,6 +168,7 @@ python evaluate_conversions.py
 #### 評価結果
 
 結果は以下のファイルに保存されます：
+
 - `output_test/llm_evaluation_results.json` - 詳細データ
 - `output_test/llm_quality_report_v2.md` - レポート
 
@@ -169,9 +181,171 @@ python evaluate_conversions.py
 #### オフライン環境での使用
 
 LLM評価機能は完全にオプションです。Ollamaが利用できない環境では：
+
 - 変換機能は通常通り動作
 - 評価スクリプトをスキップ
 - 手動での品質確認を推奨
+
+### LLM文章校正機能（オプション）
+
+**この機能は変換後のMarkdownテキストを自動的に校正します。**
+
+#### 機能概要
+
+- **誤字脱字の検出と修正**: タイポや誤変換を自動修正
+- **文法エラーの修正**: 不自然な文法を修正
+- **不自然な改行の修正**: 文の途中で改行されている箇所を統合
+- **孤立文字の統合**: 単独で存在する文字を前後の文と統合
+- **技術用語の一貫性チェック**: 用語の表記揺れを検出
+- **OCR結果の修正**: OCR特有のエラー（l/I、0/O、rn/mなど）を修正
+
+#### 前提条件
+
+1. **Ollamaのインストール**: <https://ollama.ai/>
+2. **推奨モデル**:
+   - `llama3.2:latest` (2GB) - 軽量、高速、推奨
+   - `llama3:latest` (4.7GB) - より高精度
+   - `mistral:latest` (4.1GB) - 代替オプション
+
+3. **Pythonパッケージ**:
+
+```bash
+pip install ollama
+```
+
+#### 使用方法
+
+##### 自動モード（確認なしで全て適用）
+
+```bash
+# 変換と同時に校正を適用
+doc2md -i document.pdf -o output.md --proofread
+
+# 特定のモデルを使用
+doc2md -i document.pdf -o output.md --proofread --proofread-model llama3:latest
+
+# 校正結果を別ファイルに保存
+doc2md -i document.pdf -o output.md --proofread --proofread-output corrected.md
+```
+
+##### インタラクティブモード（各修正を確認）
+
+```bash
+# 修正案を1つずつ確認しながら適用
+doc2md -i document.pdf -o output.md --proofread --proofread-mode interactive
+```
+
+インタラクティブモードでは、各修正案について以下の情報が表示されます：
+
+- 修正の種類（誤字、文法、改行など）
+- 修正前のテキスト
+- 修正後のテキスト
+- 修正理由
+
+各修正案に対して、適用 (y)、スキップ (n)、終了 (q) を選択できます。
+
+##### Dry-runモード（修正案のみ表示）
+
+```bash
+# 修正案を表示するだけで、実際には適用しない
+doc2md -i document.pdf --proofread --proofread-mode dry-run
+```
+
+このモードでは：
+
+- すべての修正案が表示されます
+- 差分（diff）が表示されます
+- ファイルは変更されません
+
+#### 校正の重点領域
+
+デフォルトでは以下の領域をチェックします：
+
+- **typos**: 誤字脱字
+- **grammar**: 文法エラー
+- **line_breaks**: 不自然な改行
+- **isolated_chars**: 孤立文字
+- **terminology**: 技術用語の一貫性
+
+OCRテキストの場合は追加で：
+
+- **ocr_errors**: OCR特有のエラー
+- **technical_terms**: 技術用語の修正
+- **numbers**: 数値の正確性
+- **symbols**: 記号の正確性
+
+#### 使用例
+
+```bash
+# 基本的な使用（自動モード）
+doc2md -i technical_doc.pdf -o output.md --proofread
+
+# インタラクティブに確認しながら修正
+doc2md -i report.docx -o output.md --proofread --proofread-mode interactive
+
+# 修正案だけ確認（適用しない）
+doc2md -i document.pdf --proofread --proofread-mode dry-run
+
+# バッチ処理で校正を適用
+doc2md -i file1.pdf -i file2.pdf -i file3.pdf --proofread
+
+# 異なるモデルを使用
+doc2md -i document.pdf -o output.md --proofread --proofread-model mistral:latest
+```
+
+#### ベストプラクティス
+
+1. **初回は Dry-run モードで確認**: まず `--proofread-mode dry-run` で修正案を確認
+2. **インタラクティブモードで精査**: 重要な文書では `--proofread-mode interactive` で各修正を確認
+3. **技術文書には慎重に**: 技術用語や数値が多い文書では、修正内容を必ず確認
+4. **バッチ処理では自動モード**: 大量のファイルを処理する場合は自動モードが効率的
+
+#### 制限事項と注意点
+
+1. **LLMの精度に依存**: 修正の品質はLLMモデルの性能に依存します
+2. **文脈理解の限界**: 複雑な文脈や専門用語の判断が不正確な場合があります
+3. **処理時間**: LLMを使用するため、通常の変換より時間がかかります
+4. **オフライン不可**: Ollamaが必要なため、オフライン環境では使用できません
+5. **元の意味の保持**: 修正は元の意味を変えないよう設計されていますが、必ず確認してください
+
+#### 修正履歴
+
+校正の履歴は `.proofread_history.json` に自動的に記録されます：
+
+- 処理日時
+- ファイルパス
+- 使用したモード
+- 検出された問題数
+- 適用された修正数
+
+#### トラブルシューティング
+
+**Ollamaに接続できない**:
+
+```bash
+# Ollamaが起動しているか確認
+ollama list
+
+# モデルがダウンロードされているか確認
+ollama pull llama3.2
+```
+
+**修正が適用されない**:
+
+- Dry-runモードになっていないか確認
+- ログレベルをDEBUGにして詳細を確認: `--log-level DEBUG`
+
+**処理が遅い**:
+
+- より軽量なモデルを使用: `--proofread-model llama3.2:latest`
+- GPUを使用できる環境ではOllamaがGPUを自動的に使用します
+
+#### 環境要件
+
+- **メモリ**: 最低4GB（推奨8GB以上）
+- **ディスク**: モデルサイズ + 1GB
+- **CPU/GPU**: CPUでも動作可能（GPUがあれば高速）
+- **Ollama**: 最新版を推奨
 
 ## 開発
 

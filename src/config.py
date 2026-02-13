@@ -30,11 +30,11 @@ class ImageFormat(Enum):
 @dataclass
 class ConversionConfig:
     """Configuration for document conversion.
-    
+
     This dataclass contains all configuration options for the conversion process,
     including input/output paths, formatting options, image handling, OCR settings,
-    and operational modes.
-    
+    proofreading options, and operational modes.
+
     Attributes:
         input_path: Path to input file
         output_path: Path to output file (None for stdout)
@@ -56,61 +56,71 @@ class ConversionConfig:
         log_file: Log file path
         max_file_size_mb: Maximum file size in MB
         batch_mode: Batch conversion mode
+        enable_proofread: Enable proofreading
+        proofread_mode: Proofreading mode (auto/interactive/dry-run)
+        proofread_model: LLM model for proofreading
+        proofread_output_path: Separate output path for proofread result
     """
     input_path: str
     output_path: Optional[str] = None
     config_file: Optional[str] = None
-    
+
     # Output options (Requirements 8.1, 8.2, 8.3, 8.5)
     heading_offset: int = 0
     table_style: str = "standard"
     include_metadata: bool = False
     output_encoding: str = "utf-8"
-    
+
     # Image options (Requirements 8.4)
     extract_images: bool = True
     image_format: str = "preserve"
     embed_images_base64: bool = False
     diagram_to_mermaid: bool = False
-    
+
     # OCR options
     enable_ocr: bool = True
     ocr_language: str = "eng+jpn"
-    
+
     # Mode options
     preview_mode: bool = False
     dry_run: bool = False
     validate_output: bool = True
-    
+
     # Logging options
     log_level: LogLevel = LogLevel.INFO
     log_file: Optional[str] = None
-    
+
     # Performance options
     max_file_size_mb: int = 100
     batch_mode: bool = False
-    
+
+    # Proofreading options
+    enable_proofread: bool = False
+    proofread_mode: str = "auto"
+    proofread_model: str = "llama3.2:latest"
+    proofread_output_path: Optional[str] = None
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary.
-        
+
         Returns:
             Dictionary representation of configuration
         """
         config_dict = asdict(self)
-        
+
         # Convert LogLevel enum to string
         if isinstance(config_dict.get('log_level'), LogLevel):
             config_dict['log_level'] = config_dict['log_level'].name
-        
+
         return config_dict
-    
+
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'ConversionConfig':
         """Create configuration from dictionary.
-        
+
         Args:
             data: Dictionary with configuration values
-            
+
         Returns:
             ConversionConfig instance
         """
@@ -121,11 +131,11 @@ class ConversionConfig:
             except KeyError:
                 # Invalid log level, use default
                 data['log_level'] = LogLevel.INFO
-        
+
         # Filter out keys that aren't in the dataclass
         valid_keys = {f.name for f in cls.__dataclass_fields__.values()}
         filtered_data = {k: v for k, v in data.items() if k in valid_keys}
-        
+
         return cls(**filtered_data)
 
 
