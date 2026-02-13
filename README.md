@@ -18,26 +18,65 @@ cd doc2md-converter
 ```
 
 セットアップスクリプトは以下を自動的に行います：
+- uv (高速Pythonパッケージマネージャー) のインストール
+- Python 仮想環境 (.venv) の作成とアクティベート
 - Python バージョンチェック（3.9以上）
 - Python パッケージのインストール
 - Tesseract OCR のインストール（オプション）
 - Ollama のインストール（オプション）
 - LLM モデルのダウンロード（オプション）
 
+**次回以降の使用:**
+```bash
+# 仮想環境をアクティベート
+source .venv/bin/activate
+
+# コマンドを実行
+doc2md -i document.pdf -o output.md --full
+```
+
 #### 手動セットアップ
 
-##### 1. 基本インストール
+##### 方法1: uv を使用（推奨）
+
+[uv](https://docs.astral.sh/uv/) は高速なPythonパッケージマネージャーです。
+
+```bash
+# uv をインストール
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# リポジトリをクローン
+git clone https://github.com/kino-6/doc2md-converter.git
+cd doc2md-converter
+
+# 仮想環境を作成
+uv venv
+
+# 仮想環境をアクティベート
+source .venv/bin/activate  # macOS/Linux
+# または
+.venv\Scripts\activate  # Windows
+
+# パッケージをインストール
+uv pip install -e ".[dev,llm]"
+```
+
+##### 方法2: pip を使用
 
 ```bash
 # リポジトリをクローン
 git clone https://github.com/kino-6/doc2md-converter.git
 cd doc2md-converter
 
+# 仮想環境を作成（推奨）
+python3 -m venv .venv
+source .venv/bin/activate  # macOS/Linux
+
 # パッケージをインストール
 pip install -e ".[dev,llm]"
 ```
 
-##### 2. Ollamaのセットアップ（推奨）
+##### Ollamaのセットアップ（推奨）
 
 フル機能（文章校正、図→Mermaid変換）を使用するには、Ollamaが必要です。
 
@@ -71,7 +110,7 @@ ollama pull llama3.2:latest
 ollama pull llama3.2-vision:latest
 ```
 
-##### 3. Tesseract OCRのインストール（オプション）
+##### Tesseract OCRのインストール（オプション）
 
 OCR機能を使用する場合：
 

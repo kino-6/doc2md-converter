@@ -2,6 +2,45 @@
 
 ## 完了した実装
 
+### 0. 自動セットアップスクリプト ✅
+
+**実装日**: 2026-02-13
+
+**実装内容**:
+- `setup.sh`: 対話式の環境セットアップスクリプト
+- macOS と Linux をサポート
+- uv (高速Pythonパッケージマネージャー) の自動インストール
+- Python 仮想環境 (.venv) の自動作成とアクティベート
+- 自動インストール機能:
+  - uv のインストール（オプション、ユーザー確認あり）
+  - Python 仮想環境の作成
+  - Python バージョンチェック（3.9以上）
+  - Python パッケージ（uv pip install -e ".[dev,llm]"）
+  - Tesseract OCR（オプション、ユーザー確認あり）
+  - Ollama（オプション、ユーザー確認あり）
+  - LLM モデル: llama3.2:latest と llama3.2-vision:latest（オプション）
+- インストール状況のサマリー表示
+- 色付き出力で視認性向上
+- 次回使用時の仮想環境アクティベート方法を表示
+
+**使用方法**:
+```bash
+# リポジトリをクローン
+git clone https://github.com/kino-6/doc2md-converter.git
+cd doc2md-converter
+
+# セットアップスクリプトを実行
+./setup.sh
+
+# 次回以降
+source .venv/bin/activate
+doc2md -i document.pdf -o output.md --full
+```
+
+**ファイル**:
+- `setup.sh` (MODIFIED - uv と仮想環境サポート追加)
+- `README.md` (MODIFIED - uv を使った手動セットアップ手順追加)
+
 ### 1. LLM文章校正機能（Task 30）✅
 
 **実装日**: 2026-02-13
@@ -206,6 +245,7 @@ doc2md -i docs_target2/*.pdf --full
 ## ファイル変更サマリー
 
 ### 新規作成
+- `setup.sh` - 自動セットアップスクリプト
 - `src/text_proofreader.py`
 - `src/ocr_proofreader.py`
 - `src/proofread_modes.py`
@@ -217,6 +257,7 @@ doc2md -i docs_target2/*.pdf --full
 - `IMPLEMENTATION_SUMMARY.md` (このファイル)
 
 ### 変更
+- `README.md` - QuickStart セクション、自動セットアップ手順追加
 - `src/cli.py` - 文章校正オプション追加
 - `src/config.py` - 文章校正、図変換設定追加
 - `src/image_extractor.py` - 図変換統合
@@ -224,7 +265,6 @@ doc2md -i docs_target2/*.pdf --full
 - `src/markdown_serializer.py` - Mermaid埋め込み
 - `src/conversion_orchestrator.py` - DiagramConverter統合
 - `setup.py` - argparse entry point 追加
-- `README.md` - QuickStart セクション追加
 
 ## コミット履歴
 
