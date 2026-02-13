@@ -6,7 +6,27 @@
 
 ### 環境セットアップ
 
-#### 1. 基本インストール
+#### 自動セットアップ（推奨）
+
+```bash
+# リポジトリをクローン
+git clone https://github.com/kino-6/doc2md-converter.git
+cd doc2md-converter
+
+# セットアップスクリプトを実行（対話式）
+./setup.sh
+```
+
+セットアップスクリプトは以下を自動的に行います：
+- Python バージョンチェック（3.9以上）
+- Python パッケージのインストール
+- Tesseract OCR のインストール（オプション）
+- Ollama のインストール（オプション）
+- LLM モデルのダウンロード（オプション）
+
+#### 手動セットアップ
+
+##### 1. 基本インストール
 
 ```bash
 # リポジトリをクローン
@@ -17,33 +37,64 @@ cd doc2md-converter
 pip install -e ".[dev,llm]"
 ```
 
-#### 2. Ollamaのセットアップ（推奨）
+##### 2. Ollamaのセットアップ（推奨）
 
 フル機能（文章校正、図→Mermaid変換）を使用するには、Ollamaが必要です。
 
+**macOS:**
 ```bash
-# Ollamaをインストール
-# macOS/Linux: https://ollama.ai/ からダウンロード
-# または Homebrew: brew install ollama
+# Homebrew でインストール
+brew install ollama
 
-# 必要なモデルをダウンロード
-ollama pull llama3.2:latest        # 文章校正用 (2GB)
-ollama pull llama3.2-vision:latest # 図変換用 (7.9GB)
+# または公式サイトからダウンロード
+# https://ollama.ai/
 ```
 
-#### 3. Tesseract OCRのインストール（オプション）
+**Linux:**
+```bash
+# 公式インストールスクリプト
+curl -fsSL https://ollama.ai/install.sh | sh
+```
+
+**Windows:**
+```powershell
+# 公式サイトからインストーラーをダウンロード
+# https://ollama.ai/
+```
+
+**モデルのダウンロード:**
+```bash
+# 文章校正用モデル (2GB)
+ollama pull llama3.2:latest
+
+# 図→Mermaid変換用モデル (7.9GB)
+ollama pull llama3.2-vision:latest
+```
+
+##### 3. Tesseract OCRのインストール（オプション）
 
 OCR機能を使用する場合：
 
+**macOS:**
 ```bash
-# macOS
 brew install tesseract tesseract-lang
+```
 
-# Ubuntu/Debian
+**Ubuntu/Debian:**
+```bash
+sudo apt-get update
 sudo apt-get install tesseract-ocr tesseract-ocr-jpn
+```
 
-# Windows
-# https://github.com/UB-Mannheim/tesseract/wiki からインストーラーをダウンロード
+**Windows:**
+```powershell
+# インストーラーをダウンロード
+# https://github.com/UB-Mannheim/tesseract/wiki
+```
+
+**インストール確認:**
+```bash
+tesseract --version
 ```
 
 ### フル機能での変換（推奨）
@@ -115,6 +166,19 @@ doc2md -i document.pdf -o output.md --extract-images --diagram-to-mermaid
 | 図→Mermaid | Ollama | llama3.2-vision:latest | 7.9GB |
 
 ### トラブルシューティング
+
+**セットアップがうまくいかない**:
+
+```bash
+# セットアップスクリプトを再実行
+./setup.sh
+
+# または手動で各コンポーネントを確認
+python3 --version  # Python 3.9以上が必要
+pip list | grep doc2md-converter  # パッケージがインストールされているか
+tesseract --version  # OCR用（オプション）
+ollama --version  # LLM用（オプション）
+```
 
 **Ollamaに接続できない**:
 
