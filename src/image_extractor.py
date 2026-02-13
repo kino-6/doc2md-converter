@@ -20,12 +20,15 @@ class ImageExtractor:
     - Sequential or original filename-based naming
     - Updating image references with extracted paths
     - OCR text extraction from images (when enabled)
+    - Diagram to Mermaid conversion (when enabled)
     
     Attributes:
         output_dir: Base directory for output files
         preserve_filenames: Whether to preserve original filenames (default: False)
         ocr_engine: Optional OCR engine for text extraction from images
         enable_ocr: Whether to apply OCR to extracted images
+        diagram_converter: Optional diagram converter for Mermaid conversion
+        enable_diagram_conversion: Whether to convert diagrams to Mermaid
     """
     
     def __init__(
@@ -33,7 +36,9 @@ class ImageExtractor:
         output_dir: str = ".",
         preserve_filenames: bool = False,
         ocr_engine: Optional['OCREngine'] = None,
-        enable_ocr: bool = True
+        enable_ocr: bool = True,
+        diagram_converter: Optional['DiagramConverter'] = None,
+        enable_diagram_conversion: bool = False
     ):
         """Initialize the ImageExtractor.
         
@@ -42,11 +47,15 @@ class ImageExtractor:
             preserve_filenames: Whether to preserve original filenames when possible
             ocr_engine: Optional OCR engine instance for text extraction
             enable_ocr: Whether to apply OCR to images (default: True)
+            diagram_converter: Optional diagram converter for Mermaid conversion
+            enable_diagram_conversion: Whether to convert diagrams to Mermaid
         """
         self.output_dir = Path(output_dir)
         self.preserve_filenames = preserve_filenames
         self.ocr_engine = ocr_engine
         self.enable_ocr = enable_ocr
+        self.diagram_converter = diagram_converter
+        self.enable_diagram_conversion = enable_diagram_conversion
     
     def extract_images(
         self,
@@ -108,6 +117,29 @@ class ImageExtractor:
                         except Exception as e:
                             # OCR failure is not critical, just log and continue
                             print(f"Warning: OCR failed for image {filename}: {e}")
+                    
+                    # Convert diagram to Mermaid if enabled
+                    if self.enable_diagram_conversion and self.diagram_converter:
+                        try:
+                            # Check if this image is a diagram
+                            if self.diagram_converter.can_convert(str(image_path)):
+                                mermaid_code = self.diagram_converter.convert_to_mermaid(str(image_path))
+                                if mermaid_code:
+                                    # Save Mermaid code to a separate file
+                                    mermaid_path = image_path.with_suffix('.mmd')
+                                    with open(mermaid_path, 'w', encoding='utf-8') as f:
+                                        f.write(mermaid_code)
+                                    
+                                    # Store Mermaid code in image reference
+                                    if not hasattr(img_ref, 'mermaid_code'):
+                                        img_ref.mermaid_code = mermaid_code
+                                    else:
+                                        img_ref.mermaid_code = mermaid_code
+                                    
+                                    print(f"  Mermaid変換成功: {mermaid_path.name}")
+                        except Exception as e:
+                            # Diagram conversion failure is not critical
+                            print(f"Warning: Diagram conversion failed for {filename}: {e}")
                     
                     extracted_images.append(img_ref)
                 

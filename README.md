@@ -2,11 +2,147 @@
 
 高品質なMarkdown変換を実現する、Word (.docx)、Excel (.xlsx)、PDF (.pdf) ドキュメント変換ツール。
 
+## QuickStart
+
+### 環境セットアップ
+
+#### 1. 基本インストール
+
+```bash
+# リポジトリをクローン
+git clone https://github.com/kino-6/doc2md-converter.git
+cd doc2md-converter
+
+# パッケージをインストール
+pip install -e ".[dev,llm]"
+```
+
+#### 2. Ollamaのセットアップ（推奨）
+
+フル機能（文章校正、図→Mermaid変換）を使用するには、Ollamaが必要です。
+
+```bash
+# Ollamaをインストール
+# macOS/Linux: https://ollama.ai/ からダウンロード
+# または Homebrew: brew install ollama
+
+# 必要なモデルをダウンロード
+ollama pull llama3.2:latest        # 文章校正用 (2GB)
+ollama pull llama3.2-vision:latest # 図変換用 (7.9GB)
+```
+
+#### 3. Tesseract OCRのインストール（オプション）
+
+OCR機能を使用する場合：
+
+```bash
+# macOS
+brew install tesseract tesseract-lang
+
+# Ubuntu/Debian
+sudo apt-get install tesseract-ocr tesseract-ocr-jpn
+
+# Windows
+# https://github.com/UB-Mannheim/tesseract/wiki からインストーラーをダウンロード
+```
+
+### フル機能での変換（推奨）
+
+すべての機能を有効にした変換が最も高品質な結果を提供します：
+
+```bash
+# フル機能モード（推奨）
+doc2md -i document.pdf -o output.md --full
+
+# 上記は以下と同等です：
+doc2md -i document.pdf -o output.md \
+  --extract-images \
+  --proofread \
+  --diagram-to-mermaid
+```
+
+**フル機能モードに含まれる機能：**
+
+- ✅ **画像抽出** (`--extract-images`): 埋め込み画像とベクターグラフィックを自動抽出
+- ✅ **文章校正** (`--proofread`): LLMによる誤字脱字・文法エラーの自動修正
+- ✅ **図→Mermaid変換** (`--diagram-to-mermaid`): 図表をMermaid構文に変換
+
+### 基本的な使い方
+
+```bash
+# 単一ファイルの変換（フル機能）
+doc2md -i document.pdf -o output.md --full
+
+# 複数ファイルの一括変換
+doc2md -i file1.docx -i file2.xlsx -i file3.pdf --full
+
+# プレビューモード（最初の50行のみ表示）
+doc2md -i document.pdf --preview --full
+```
+
+### 機能別の使い方
+
+#### 画像抽出のみ
+
+```bash
+doc2md -i document.pdf -o output.md --extract-images
+```
+
+#### 文章校正のみ
+
+```bash
+# 自動モード（確認なしで全て適用）
+doc2md -i document.pdf -o output.md --proofread
+
+# インタラクティブモード（各修正を確認）
+doc2md -i document.pdf -o output.md --proofread --proofread-mode interactive
+```
+
+#### 図→Mermaid変換のみ
+
+```bash
+doc2md -i document.pdf -o output.md --extract-images --diagram-to-mermaid
+```
+
+### 前提条件まとめ
+
+| 機能 | 必須ツール | モデル | サイズ |
+|------|-----------|--------|--------|
+| 基本変換 | なし | - | - |
+| 画像抽出 | なし | - | - |
+| OCR | Tesseract | - | ~100MB |
+| 文章校正 | Ollama | llama3.2:latest | 2GB |
+| 図→Mermaid | Ollama | llama3.2-vision:latest | 7.9GB |
+
+### トラブルシューティング
+
+**Ollamaに接続できない**:
+
+```bash
+# Ollamaが起動しているか確認
+ollama list
+
+# モデルがダウンロードされているか確認
+ollama pull llama3.2
+ollama pull llama3.2-vision
+```
+
+**処理が遅い**:
+
+- 文章校正: より軽量なモデルを使用 `--proofread-model llama3.2:latest`
+- 図変換: 大きな図が多い場合は時間がかかります（1画像あたり5-15秒）
+
+**メモリ不足**:
+
+- llama3.2-vision (7.9GB) は約8GBのメモリが必要です
+- 代替として llava:latest (4.7GB) を使用: `--diagram-model llava:latest`
+
 ## 特徴
 
 - ✅ **複数フォーマット対応**: Word、Excel、PDFを統一的に処理
 - ✅ **高品質変換**: テキスト、表、画像、見出し構造を保持
 - ✅ **画像抽出**: 埋め込み画像とベクターグラフィックを自動抽出
+- ✅ **図→Mermaid変換**: マルチモーダルLLMで図表をMermaid構文に変換（オプション）
 - ✅ **進捗表示**: tqdmによる視覚的な進捗バー
 - ✅ **エンコーディング対応**: UTF-8で正しく出力
 - ✅ **バッチ処理**: 複数ファイルの一括変換
@@ -70,6 +206,9 @@ doc2md -i document.docx --dry-run
 # 画像をBase64埋め込み
 doc2md -i document.pdf -o output.md --embed-images-base64
 
+# 図→Mermaid変換を有効化（マルチモーダルLLM使用）
+doc2md -i document.pdf -o output.md --extract-images --diagram-to-mermaid
+
 # 文章校正を有効化（自動モード）
 doc2md -i document.pdf -o output.md --proofread
 
@@ -106,6 +245,86 @@ max_file_size_mb: 100
 - **埋め込み画像**: JPEG、PNG、GIFなどの画像を抽出
 - **ベクターグラフィック**: 図表、回路図などを144 DPIでPNG化
 - **自動検出**: ページ内の描画オブジェクト数とテキスト比率で判定
+
+### 図→Mermaid変換（オプション）🆕
+
+**マルチモーダルLLMを使用して、画像内の図表をMermaid構文に自動変換します。**
+
+#### サポートする図の種類
+
+- フローチャート（flowchart）
+- シーケンス図（sequence）
+- クラス図（class）
+- 状態遷移図（state）
+- ER図（er）
+- ガントチャート（gantt）
+- 円グラフ（pie）
+- マインドマップ（mindmap）
+- タイムライン（timeline）
+- ブロック図（block）
+
+#### 前提条件
+
+1. **Ollamaのインストール**: <https://ollama.ai/>
+2. **マルチモーダルモデル**:
+   - `llama3.2-vision:latest` (推奨、7.9GB)
+   - `llava:latest` (代替、4.7GB)
+
+3. **モデルのインストール**:
+
+```bash
+# 推奨モデル
+ollama pull llama3.2-vision
+
+# または代替モデル
+ollama pull llava
+```
+
+#### 使用方法
+
+```bash
+# 基本的な使用
+doc2md -i document.pdf -o output.md --extract-images --diagram-to-mermaid
+
+# 特定のモデルを使用
+doc2md -i document.pdf -o output.md --extract-images \
+  --diagram-to-mermaid --diagram-model llava:latest
+```
+
+#### 出力形式
+
+変換された図は、元の画像とMermaid構文の両方が出力されます：
+
+```markdown
+![Diagram](path/to/image.png)
+
+\`\`\`mermaid
+flowchart TD
+    A[開始] --> B{条件判定}
+    B -->|Yes| C[処理1]
+    B -->|No| D[処理2]
+    C --> E[終了]
+    D --> E
+\`\`\`
+```
+
+また、Mermaidファイル（`.mmd`）も画像と同じディレクトリに保存されます。
+
+#### マルチモーダルRAGへの応用
+
+この機能は、マルチモーダルRAG（Retrieval-Augmented Generation）の前処理として非常に有用です：
+
+1. **図表のテキスト化**: 画像内の図表をMermaid構文（テキスト）に変換
+2. **LLMの理解向上**: テキスト化された図表はLLMが直接理解可能
+3. **検索性の向上**: 図表の内容もテキスト検索の対象になる
+4. **コンテキスト圧縮**: 画像よりもMermaid構文の方がトークン数が少ない
+
+#### 制限事項
+
+- 複雑な図や手書きの図は変換精度が低下する可能性があります
+- 処理時間: 1画像あたり5-15秒程度
+- メモリ: マルチモーダルモデルは約8GB必要
+- 図でない画像（写真、グラフなど）は自動的にスキップされます
 
 ### 進捗表示
 

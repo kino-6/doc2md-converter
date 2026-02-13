@@ -76,6 +76,7 @@ class ConversionConfig:
     image_format: str = "preserve"
     embed_images_base64: bool = False
     diagram_to_mermaid: bool = False
+    diagram_model: str = "llama3.2-vision:latest"
 
     # OCR options
     enable_ocr: bool = True

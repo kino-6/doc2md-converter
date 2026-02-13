@@ -274,14 +274,20 @@ class MarkdownSerializer:
         - Relative path references (using extracted_path if available)
         - Placeholder comments for extraction failures
         - OCR text inclusion
+        - Mermaid diagram embedding (when mermaid_code is available)
         
         Args:
             image: ImageReference object to serialize
             
         Returns:
             Markdown image string (e.g., "![alt text](path)" or "![alt text](data:image/png;base64,...)") 
-            or placeholder comment
+            or placeholder comment, optionally with Mermaid diagram
         """
+        # Check if we have Mermaid code for this image
+        mermaid_section = ""
+        if hasattr(image, 'mermaid_code') and image.mermaid_code:
+            mermaid_section = f"\n\n```mermaid\n{image.mermaid_code}\n```\n"
+        
         # Check if we have base64 data for embedding
         if image.base64_data:
             # Use base64 data URL
@@ -296,15 +302,15 @@ class MarkdownSerializer:
             # Add OCR text as additional context if available
             if image.ocr_text:
                 escaped_ocr = MarkdownEscaper.escape_text(image.ocr_text, context="normal")
-                return f"![{escaped_alt}]({data_url})\n\n*OCR extracted text: {escaped_ocr}*"
+                return f"![{escaped_alt}]({data_url})\n\n*OCR extracted text: {escaped_ocr}*{mermaid_section}"
             
-            return f"![{escaped_alt}]({data_url})"
+            return f"![{escaped_alt}]({data_url}){mermaid_section}"
         
         # Check if image extraction failed (no extracted_path and no valid source_path)
         if not image.extracted_path and not image.source_path:
             # Return placeholder comment for failed extraction
             alt_text = image.alt_text if image.alt_text else "Image"
-            return f"<!-- Image extraction failed: {alt_text} -->"
+            return f"<!-- Image extraction failed: {alt_text} -->{mermaid_section}"
         
         # Use extracted path (relative) if available, otherwise use source path
         path = image.extracted_path if image.extracted_path else image.source_path
@@ -312,7 +318,7 @@ class MarkdownSerializer:
         # If path is still None or empty, return placeholder
         if not path:
             alt_text = image.alt_text if image.alt_text else "Image"
-            return f"<!-- Image extraction failed: {alt_text} -->"
+            return f"<!-- Image extraction failed: {alt_text} -->{mermaid_section}"
         
         # Escape URL special characters
         escaped_path = MarkdownEscaper.escape_url(path)
@@ -325,9 +331,9 @@ class MarkdownSerializer:
         # Add OCR text as additional context if available
         if image.ocr_text:
             escaped_ocr = MarkdownEscaper.escape_text(image.ocr_text, context="normal")
-            return f"![{escaped_alt}]({escaped_path})\n\n*OCR extracted text: {escaped_ocr}*"
+            return f"![{escaped_alt}]({escaped_path})\n\n*OCR extracted text: {escaped_ocr}*{mermaid_section}"
         
-        return f"![{escaped_alt}]({escaped_path})"
+        return f"![{escaped_alt}]({escaped_path}){mermaid_section}"
     
     def serialize_link(self, link: Link) -> str:
         """Serialize a hyperlink to Markdown format.

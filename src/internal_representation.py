@@ -112,6 +112,7 @@ class ImageReference:
         extracted_path: Path where the image was extracted to (if extracted)
         alt_text: Alternative text description for the image
         ocr_text: Text extracted from the image via OCR (if applicable)
+        mermaid_code: Mermaid diagram code if the image is a diagram (if applicable)
         base64_data: Base64-encoded image data for embedding (if applicable)
         mime_type: MIME type of the image (e.g., 'image/png', 'image/jpeg')
         page_number: Page number where the image appears (for PDF documents)
@@ -120,6 +121,7 @@ class ImageReference:
     extracted_path: Optional[str] = None
     alt_text: Optional[str] = None
     ocr_text: Optional[str] = None
+    mermaid_code: Optional[str] = None
     base64_data: Optional[str] = None
     mime_type: Optional[str] = None
     page_number: Optional[int] = None

@@ -182,12 +182,26 @@ class ConversionOrchestrator:
                         else:
                             output_dir = Path.cwd() / "output"
                         
+                        # Initialize diagram converter if enabled
+                        diagram_converter = None
+                        if self.config.diagram_to_mermaid:
+                            try:
+                                from src.diagram_converter import DiagramConverter
+                                diagram_converter = DiagramConverter(model=self.config.diagram_model)
+                                self.logger.info(f"Diagram conversion enabled with model: {self.config.diagram_model}")
+                            except Exception as e:
+                                warning_msg = f"Failed to initialize diagram converter: {str(e)}"
+                                result.warnings.append(warning_msg)
+                                self.logger.warning(warning_msg)
+                        
                         # Initialize image extractor
                         image_extractor = ImageExtractor(
                             output_dir=str(output_dir),
                             preserve_filenames=False,
                             ocr_engine=None,  # OCR will be added later if needed
-                            enable_ocr=self.config.enable_ocr
+                            enable_ocr=self.config.enable_ocr,
+                            diagram_converter=diagram_converter,
+                            enable_diagram_conversion=self.config.diagram_to_mermaid
                         )
                         
                         # Get image data from parser if available

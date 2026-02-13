@@ -80,6 +80,18 @@ from src.conversion_orchestrator import ConversionOrchestrator
     help='Embed images as base64 data URLs instead of extracting to files'
 )
 @click.option(
+    '--diagram-to-mermaid',
+    'diagram_to_mermaid',
+    is_flag=True,
+    help='Convert diagrams to Mermaid syntax using multimodal LLM'
+)
+@click.option(
+    '--diagram-model',
+    'diagram_model',
+    default='llama3.2-vision:latest',
+    help='Multimodal LLM model for diagram conversion (default: llama3.2-vision:latest)'
+)
+@click.option(
     '--ocr-lang',
     'ocr_language',
     default='eng+jpn',
@@ -155,6 +167,8 @@ def main(
     extract_images: bool,
     no_extract_images: bool,
     embed_images_base64: bool,
+    diagram_to_mermaid: bool,
+    diagram_model: str,
     ocr_language: str,
     heading_offset: int,
     include_metadata: bool,

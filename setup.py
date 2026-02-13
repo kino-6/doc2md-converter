@@ -43,6 +43,7 @@ setup(
     entry_points={
         "console_scripts": [
             "doc2md=src.cli:main",
+            "doc2md-argparse=src.cli_argparse:main_argparse",
         ],
     },
     classifiers=[
