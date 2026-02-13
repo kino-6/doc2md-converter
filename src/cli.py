@@ -37,6 +37,12 @@ from src.conversion_orchestrator import ConversionOrchestrator
     help='Configuration file path (YAML format)'
 )
 @click.option(
+    '--full',
+    'full_mode',
+    is_flag=True,
+    help='Enable all features (extract-images, proofread, diagram-to-mermaid). Recommended for best results.'
+)
+@click.option(
     '--preview', '-p',
     'preview_mode',
     is_flag=True,
@@ -160,6 +166,7 @@ def main(
     input_path: tuple,
     output_path: Optional[str],
     config_file: Optional[str],
+    full_mode: bool,
     preview_mode: bool,
     dry_run: bool,
     log_level: str,
@@ -187,6 +194,9 @@ def main(
         # Convert a Word document to Markdown
         doc2md -i document.docx -o output.md
 
+        # Full feature conversion (recommended)
+        doc2md -i document.pdf -o output.md --full
+
         # Convert multiple documents (batch mode)
         doc2md -i doc1.docx -i doc2.xlsx -i doc3.pdf
 
@@ -211,11 +221,19 @@ def main(
     # Convert tuple to list
     input_paths = list(input_path)
 
+    # Handle --full flag
+    if full_mode:
+        extract_images = True
+        enable_proofread = True
+        diagram_to_mermaid = True
+        click.echo("🚀 Full feature mode enabled: extract-images, proofread, diagram-to-mermaid")
+        click.echo()
+
     # Handle conflicting flags
     # Default: extract_images = True (unless --no-extract-images is specified)
     if no_extract_images:
         extract_images = False
-    elif not extract_images:
+    elif not extract_images and not full_mode:
         # If neither flag is specified, default to True
         extract_images = True
 
